@@ -10,7 +10,6 @@ total_passed = 0 # total passed test cases
 total_failed = 0 # total failed test cases
 passed_statements = [] # executions by passing test cases
 failed_statements = [] # executions by failing test cases
-scores = [] # Calculated scores
 
 def main(argv):
     matrix = ''
@@ -41,33 +40,45 @@ def main(argv):
         elif opt == "-r":
             max_rank = arg
 
-        # Verify input
-        check_correct_arguments(matrix, spectra, technique, number, max_rank)
+    # Verify input
+    verify_input(matrix, spectra, technique, number, max_rank)
+    if number: number = int(number)
+    if max_rank: max_rank = int(max_rank)
 
-        # Get matrix data
-        analyze_matrix()
+    # Get matrix data
+    analyze_matrix(matrix)
 
-        scores = np.zeros(len(passed_statements))
-        # Call design metric
-        call_design_metric(technique)
+    # Call design metric
+    scores = call_design_metric(technique)
 
-        # Rank items
-        ranks = rank(scores)
-        sorted_rank_indices = np.argsort(ranks)
-        spectra_lines = load_spectra(spectra)
-        for i, line in enumerate(spectra_lines):
-            spectra_lines[i] = "Rank: " + str(ranks[i]) + " | " + line
-        np_spectra_lines = np.array(spectra_lines)
-        sorted_lines = np_spectra_lines[sorted_rank_indices]
-        if number:
-            print(sorted_lines[:number])
+    # Rank items
+    ranks = rank(scores)
+    sorted_rank_indices = np.argsort(ranks)
+    spectra_lines = load_spectra(spectra)
+    for i, line in enumerate(spectra_lines):
+        spectra_lines[i] = "Rank: " + str(ranks[i]) + " | " + "Suspiciousness: " + "{:.4f}".format(scores[i]) + " | " + line
+    np_spectra_lines = np.array(spectra_lines)
+    sorted_lines = np_spectra_lines[sorted_rank_indices]
+
+    if number:
+        print(sorted_lines[:number])
+        sys.exit()
+    if max_rank:
+        i, = np.where(np.sort(ranks) == max_rank)
+        if len(i) == 0:
+            print(sorted_lines)
+        else:
+            print(sorted_lines[:(i[-1]+1)])
+        sys.exit()
+    print(sorted_lines)
+    sys.exit()
 
         # print("Total passed: {:d}".format(total_passed))
         # print("Total failed: {:d}".format(total_failed))
         # print(passed_statements)
         # print(failed_statements)
 
-def analyze_matrix():
+def analyze_matrix(matrix):
     global passed_statements, failed_statements, total_failed, total_passed, scores
     with open(matrix) as csvfile:
         reader = csv.reader(csvfile, delimiter=' ')
@@ -88,7 +99,7 @@ def analyze_matrix():
             print("Error during matrix file parsing.")
             sys.exit()
 
-def verify_input(matrix, spectra, technque, number, max_rank)
+def verify_input(matrix, spectra, technique, number, max_rank):
     if(matrix == '' or spectra == '' or technique == ''):
         usage()
         sys.exit()
@@ -133,43 +144,52 @@ def load_spectra(fname):
 
 def call_design_metric(technique):
     if technique == "dstar2":
-        dstar2()
+        scores = dstar2()
     elif technique == "dstar3":
-        dstar3()
+        scores = dstar3()
     elif technique == "jaccard":
-        jaccard()
+        scores = jaccard()
     elif technique == "ochiai":
-        ochiai()
+        scores = ochiai()
     elif technique == "tarantula":
-        tarantula()
+        scores = tarantula()
+    else:
+        print("Not implemented yet.")
+        sys.exit()
+    return scores
 
 def dstar2():
-    global scores
-    for i, _ in enumerate(scores):
-        scores[i] = failed_statements[i]**2 / (total_failed - failed_statements[i] + passed_statements[i])
+    result = np.zeros(len(passed_statements))
+    for i, _ in enumerate(result):
+        result[i] = failed_statements[i]**2 / (total_failed - failed_statements[i] + passed_statements[i])
+    return result
 
 def dstar3():
-    global scores
-    for i, _ in enumerate(scores):
-        scores[i] = failed_statements[i]**3 / (total_failed - failed_statements[i] + passed_statements[i])
+    result = np.zeros(len(passed_statements))
+    for i, _ in enumerate(result):
+        result[i] = failed_statements[i]**3 / (total_failed - failed_statements[i] + passed_statements[i])
+    return result
 
 def jaccard():
-    global scores
-    for i, _ in enumerate(scores):
-        scores[i] = failed_statements[i] / (failed_statements[i] + (total_failed - failed_statements[i]) + passed_statements[i])
+    result = np.zeros(len(passed_statements))
+    for i, _ in enumerate(result):
+        result[i] = failed_statements[i] / (failed_statements[i] + (total_failed - failed_statements[i]) + passed_statements[i])
+    return result
 
 def ochiai():
-    global scores
-    for i, _ in enumerate(scores):
-        scores[i] = failed_statements[i] / np.sqrt(total_failed * (failed_statements[i] + passed_statements[i]))
+    result = np.zeros(len(passed_statements))
+    for i, _ in enumerate(result):
+        result[i] = failed_statements[i] / np.sqrt(total_failed * (failed_statements[i] + passed_statements[i]))
+    return result
 
 def tarantula():
-    global scores
-    for i, _ in enumerate(scores):
-        scores[i] = (failed_statements[i]/total_failed) / (failed_statements[i]/total_failed) + (passed_statements[i]/total_passed)
+    result = np.zeros(len(passed_statements))
+    for i, _ in enumerate(result):
+        result[i] = (failed_statements[i]/total_failed) / (failed_statements[i]/total_failed) + (passed_statements[i]/total_passed)
+    return result
 
 def usage():
-    print("Python commandtool to evaulate Gzoltar outputs.\n")
+    print("\nPython command tool to evaluate Gzoltar outputs.\n")
     print("faultloc.py -m <matrix file> -s <spectra file> -t <technique>")
     print("Techniques: " + ", ".join(x for x in techniques) + "\n")
     print("Parameters:")
@@ -186,10 +206,12 @@ def rank(v):
     if v is None or len(v) == 0:
         return []
     desc_indices = np.flipud(np.argsort(v))
+    # Sort NaN values to the end
+    desc_indices = np.roll(desc_indices, -np.count_nonzero(np.isnan(v)))
     result = np.empty(len(v),int)
     result[desc_indices[0]] = 1
     for i in range(1, len(result)):
-        if v[desc_indices[i]] == v[desc_indices[i-1]]:
+        if v[desc_indices[i]] == v[desc_indices[i-1]] or (np.isnan(v[desc_indices[i]]) and np.isnan(v[desc_indices[i-1]])):
             result[desc_indices[i]] = result[desc_indices[i-1]]
         else:
             result[desc_indices[i]] = result[desc_indices[i-1]] + 1
