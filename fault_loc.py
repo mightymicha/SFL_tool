@@ -103,10 +103,10 @@ def verify_input(matrix, spectra, technique, number, max_rank):
     if(matrix == '' or spectra == '' or technique == ''):
         usage()
         sys.exit()
-    if not os.path.exists(matrix):
+    if not os.path.isfile(matrix):
         print("Path of matrix is invalid.")
         sys.exit()
-    if not os.path.exists(spectra):
+    if not os.path.isfile(spectra):
         print("Path of spectra is invalid.")
         sys.exit()
     if not technique in techniques:
