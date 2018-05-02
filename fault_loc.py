@@ -11,16 +11,20 @@ total_failed = 0 # total failed test cases
 passed_statements = [] # executions by passing test cases
 failed_statements = [] # executions by failing test cases
 
+verboseprint = None
+
 def main(argv):
     matrix = ''
     spectra = ''
     technique = ''
     number = None
     max_rank = None
+    dest_path = None
+    verbose = False
 
     # Argument parsing
     try:
-        opts, args = getopt.getopt(argv, "hm:s:t:n:r:",["help", "matrix=", "spectra=", "technique="])
+        opts, args = getopt.getopt(argv, "hm:s:t:vn:r:w:",["help", "matrix=", "spectra=", "technique=, verbose"])
     except getopt.GetoptError:
         usage()
         sys.exit()
@@ -39,44 +43,66 @@ def main(argv):
             number = arg
         elif opt == "-r":
             max_rank = arg
+        elif opt == "-w":
+            dest_path = arg
+        elif opt == "-v":
+            verbose = True
 
     # Verify input
-    verify_input(matrix, spectra, technique, number, max_rank)
+    global verboseprint
+    verboseprint = print if verbose else lambda *a, **k: None
+    verboseprint("[STATUS] Verifying your input ...")
+    verify_input(matrix, spectra, technique, number, max_rank, dest_path)
     if number: number = int(number)
     if max_rank: max_rank = int(max_rank)
+    verboseprint("[STATUS] Input verified.")
 
-    # Get matrix data
+    # Get matrix and spectra data
+    verboseprint("[STATUS] Loading matrix file ...")
+    verboseprint("[STATUS] Matrix file successfully loaded. Analyzing ...")
     analyze_matrix(matrix)
+    verboseprint("[STATUS] Analyzing finished! Extracted test cases:")
+    verboseprint("[INFO] Total passed: {:d}".format(total_passed))
+    verboseprint("[INFO] Total failed: {:d}".format(total_failed))
+    verboseprint("[STATUS] Loading spectra file ...")
+    spectra_lines = load_spectra(spectra)
+    verboseprint("[STATUS] Spectra file successfully loaded.")
 
     # Call design metric
+    verboseprint("[STATUS] Scoring test cases with technique " + technique)
     scores = call_design_metric(technique)
+    verboseprint("[STATUS] Scores for test cases successfully generated!")
 
     # Rank items
+    verboseprint("[STATUS] Ranking test cases ...")
     ranks = rank(scores)
+    verboseprint("[STATUS] Test cases ranked!")
     sorted_rank_indices = np.argsort(ranks)
-    spectra_lines = load_spectra(spectra)
+    verboseprint("[STATUS] Generating output ...")
     for i, line in enumerate(spectra_lines):
         spectra_lines[i] = "Rank: " + str(ranks[i]) + " | " + "Suspiciousness: " + "{:.4f}".format(scores[i]) + " | " + line
     np_spectra_lines = np.array(spectra_lines)
     sorted_lines = np_spectra_lines[sorted_rank_indices]
 
+    output = sorted_lines
     if number:
-        print(sorted_lines[:number])
-        sys.exit()
+        output = sorted_lines[:number]
     if max_rank:
         i, = np.where(np.sort(ranks) == max_rank)
         if len(i) == 0:
-            print(sorted_lines)
+            output = sorted_lines
         else:
-            print(sorted_lines[:(i[-1]+1)])
-        sys.exit()
-    print(sorted_lines)
-    sys.exit()
+            output = sorted_lines[:(i[-1]+1)]
+    verboseprint("[STATUS] Output generated!")
+    if dest_path:
+        verboseprint("[STATUS] Writing output to file " + dest_path)
+        write_output(dest_path, output)
+        verboseprint("[STATUS] Output written!")
+    else:
+        verboseprint("[INFO] Printing results ...")
+        print(output)
+    verboseprint("[STATUS] Success! Exiting ...")
 
-        # print("Total passed: {:d}".format(total_passed))
-        # print("Total failed: {:d}".format(total_failed))
-        # print(passed_statements)
-        # print(failed_statements)
 
 def analyze_matrix(matrix):
     global passed_statements, failed_statements, total_failed, total_passed, scores
@@ -96,51 +122,78 @@ def analyze_matrix(matrix):
                     visited_statements = np.array(row[:-1]).astype(int)
                     failed_statements = np.add(failed_statements, visited_statements)
         except csv.Error as ex:
-            print("Error during matrix file parsing.")
+            verboseprint("[ERROR] Exception during matrix file parsing.")
+            print("Failed. Aborting ...")
             sys.exit()
 
-def verify_input(matrix, spectra, technique, number, max_rank):
+def verify_input(matrix, spectra, technique, number, max_rank, dest_path):
     if(matrix == '' or spectra == '' or technique == ''):
         usage()
         sys.exit()
     if not os.path.isfile(matrix):
-        print("Path of matrix is invalid.")
+        verboseprint("[ERROR] Path of matrix is invalid.")
+        print("Failed. Aborting ...")
         sys.exit()
     if not os.path.isfile(spectra):
-        print("Path of spectra is invalid.")
+        verboseprint("[ERROR] Path of spectra is invalid.")
+        print("Failed. Aborting ...")
         sys.exit()
     if not technique in techniques:
-        print("{:s} is not a valid technique. " \
-                "Possible arguments:".format(technique))
-        print(techniques)
+        verboseprint("[ERROR] {:s} is not a valid technique. Possible arguments:".format(technique))
+        verboseprint(str(techniques))
+        print("Failed. Aborting ...")
         sys.exit()
     if number and max_rank:
-        print("Do not specify rank and number of outputs together.")
+        verboseprint("[ERROR] Do not specify rank and number of outputs together.")
+        print("Failed. Aborting ...")
         sys.exit()
     if number:
         try: number = int(number)
         except ValueError:
-            print("Invalid number given.")
+            verboseprint("[ERROR] Invalid number of test cases given.")
+            print("Failed. Aborting ...")
             sys.exit()
         if number <= 0:
-            print("Number has to be positive.")
+            verboseprint("[ERROR] Number of test cases has to be positive.")
+            print("Failed. Aborting ...")
             sys.exit()
     if max_rank:
         try: max_rank = int(max_rank)
         except ValueError:
-            print("Invalid rank given.")
+            verboseprint("[ERROR] Invalid rank given.")
+            print("Failed. Aborting ...")
             sys.exit()
         if max_rank <= 0:
-            print("Rank has to be positive.")
+            verboseprint("[ERROR] Rank has to be positive.")
+            print("Failed. Aborting ...")
+            sys.exit()
+    if dest_path and not os.path.exists(dest_path):
+        verboseprint("[ERROR] Destination path invalid.")
+        print("Failed. Aborting ...")
+        sys.exit()
 
 
 def load_spectra(fname):
-    f = open(fname,'r')
     data = []
-    for line in f.readlines():
-        data.append(line.replace('\n',''))
-    f.close()
+    with open(fname, 'r') as text_file:
+        try:
+            for line in text_file.readlines():
+                data.append(line.replace('\n',''))
+        except Exception as e:
+            verboseprint("[ERROR] Exception during spectra parsing.")
+            print("Failed. Aborting ...")
+            sys.exit()
     return data
+
+def write_output(fname, output):
+    with open(fname, 'w') as text_file:
+        try:
+            for line in output:
+                text_file.write(line + '\n')
+        except Exception:
+            verboseprint("[ERROR] Exception during writing output to {:s}".format(fname))
+            print("Failed. Aborting ...")
+            sys.exit()
 
 def call_design_metric(technique):
     if technique == "dstar2":
@@ -154,7 +207,8 @@ def call_design_metric(technique):
     elif technique == "tarantula":
         scores = tarantula()
     else:
-        print("Not implemented yet.")
+        print("[ERROR] Technique not implemented yet.")
+        print("Failed. Aborting ...")
         sys.exit()
     return scores
 
