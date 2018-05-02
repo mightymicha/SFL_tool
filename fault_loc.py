@@ -24,7 +24,7 @@ def main(argv):
 
     # Argument parsing
     try:
-        opts, args = getopt.getopt(argv, "hm:s:t:vn:r:w:",["help", "matrix=", "spectra=", "technique=, verbose"])
+        opts, args = getopt.getopt(argv, "hm:s:t:vn:r:w:",["help", "matrix=", "spectra=", "technique=", "verbose"])
     except getopt.GetoptError:
         usage()
         sys.exit()
@@ -45,7 +45,7 @@ def main(argv):
             max_rank = arg
         elif opt == "-w":
             dest_path = arg
-        elif opt == "-v":
+        elif opt in ("-v", "--verbose"):
             verbose = True
 
     # Verify input
@@ -247,13 +247,13 @@ def usage():
     print("faultloc.py -m <matrix file> -s <spectra file> -t <technique>")
     print("Techniques: " + ", ".join(x for x in techniques) + "\n")
     print("Parameters:")
-    print("-m : specify matrix file (matrix=)")
-    print("-s : specify spectra file (spectra=)")
-    print("-t : specify technique for evaluation (technique=)")
+    print("-m : specify matrix file (--matrix=)")
+    print("-s : specify spectra file (--spectra=)")
+    print("-t : specify technique for evaluation (--technique=)")
     print("-w : specify output file")
     print("-n : specify number of objects to output")
     print("-r : specify number of ranks to output")
-    print("-v : verbose output")
+    print("-v : verbose output (--verbose)")
     print("-h : print this help")
 
 def rank(v):
