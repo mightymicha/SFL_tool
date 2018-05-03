@@ -4,10 +4,11 @@ import getopt
 import csv
 import numpy as np
 
-techniques = ["dstar2", "dstar3", "jaccard", "ochiai", "tarantula"]
+techniques = ["dstar2", "dstar3", "jaccard", "ochiai", "tarantula", "zoltar"]
 
 total_passed = 0 # total passed test cases
 total_failed = 0 # total failed test cases
+total = 0
 passed_statements = [] # executions by passing test cases
 failed_statements = [] # executions by failing test cases
 
@@ -79,6 +80,7 @@ def main(argv):
     verboseprint("[STATUS] Test cases ranked!")
     sorted_rank_indices = np.argsort(ranks)
     verboseprint("[STATUS] Generating output ...")
+
     for i, line in enumerate(spectra_lines):
         spectra_lines[i] = "Rank: " + str(ranks[i]) + " | " + "Suspiciousness: " + "{:.4f}".format(scores[i]) + " | " + line
     np_spectra_lines = np.array(spectra_lines)
@@ -105,7 +107,7 @@ def main(argv):
 
 
 def analyze_matrix(matrix):
-    global passed_statements, failed_statements, total_failed, total_passed, scores
+    global passed_statements, failed_statements, total_failed, total_passed, scores, total
     with open(matrix) as csvfile:
         reader = csv.reader(csvfile, delimiter=' ')
         try:
@@ -121,6 +123,7 @@ def analyze_matrix(matrix):
                     total_failed += 1
                     visited_statements = np.array(row[:-1]).astype(int)
                     failed_statements = np.add(failed_statements, visited_statements)
+            total = total_failed + total_passed
         except csv.Error as ex:
             verboseprint("[ERROR] Exception during matrix file parsing.")
             print("Failed. Aborting ...")
@@ -206,6 +209,8 @@ def call_design_metric(technique):
         scores = ochiai()
     elif technique == "tarantula":
         scores = tarantula()
+    elif technique == "zoltar":
+        scores = zoltar()
     else:
         print("[ERROR] Technique not implemented yet.")
         print("Failed. Aborting ...")
@@ -215,31 +220,55 @@ def call_design_metric(technique):
 def dstar2():
     result = np.zeros(len(passed_statements))
     for i, _ in enumerate(result):
-        result[i] = failed_statements[i]**2 / (total_failed - failed_statements[i] + passed_statements[i])
+        exec_pass = passed_statements[i]
+        exec_fail = failed_statements[i]
+        noex_fail = total_failed - exec_fail
+        result[i] = exec_fail**2 / (noex_fail + exec_pass)
     return result
 
 def dstar3():
     result = np.zeros(len(passed_statements))
     for i, _ in enumerate(result):
-        result[i] = failed_statements[i]**3 / (total_failed - failed_statements[i] + passed_statements[i])
+        exec_pass = passed_statements[i]
+        exec_fail = failed_statements[i]
+        noex_fail = total_failed - exec_fail
+        result[i] = exec_fail**3 / (noex_fail + exec_pass)
     return result
 
 def jaccard():
     result = np.zeros(len(passed_statements))
     for i, _ in enumerate(result):
-        result[i] = failed_statements[i] / (failed_statements[i] + (total_failed - failed_statements[i]) + passed_statements[i])
+        exec_pass = passed_statements[i]
+        exec_fail = failed_statements[i]
+        result[i] = exec_fail / (total_failed + exec_pass)
     return result
 
 def ochiai():
     result = np.zeros(len(passed_statements))
     for i, _ in enumerate(result):
-        result[i] = failed_statements[i] / np.sqrt(total_failed * (failed_statements[i] + passed_statements[i]))
+        exec_pass = passed_statements[i]
+        exec_fail = failed_statements[i]
+        result[i] = exec_fail / np.sqrt(total_failed * (exec_fail + exec_pass))
     return result
 
 def tarantula():
     result = np.zeros(len(passed_statements))
     for i, _ in enumerate(result):
-        result[i] = (failed_statements[i]/total_failed) / (failed_statements[i]/total_failed) + (passed_statements[i]/total_passed)
+        exec_pass = passed_statements[i]
+        exec_fail = failed_statements[i]
+        ratio_failing = (exec_fail/total_failed)
+        ratio_passing = (exec_pass/total_passed)
+        result[i] = ratio_failing / (ratio_failing + ratio_passing)
+    return result
+
+def zoltar():
+    result = np.zeros(len(passed_statements))
+    for i, _ in enumerate(result):
+        exec_pass = passed_statements[i]
+        exec_fail = failed_statements[i]
+        noex_pass = total_passed - exec_pass
+        noex_fail = total_failed - exec_fail
+        result[i] = exec_fail / (total_failed + exec_pass + 1000 * (noex_fail * exec_pass / exec_fail))
     return result
 
 def usage():
