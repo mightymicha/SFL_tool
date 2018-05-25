@@ -37,31 +37,55 @@ def main(argv):
     verboseprint("[STATUS] Loading matrix file ...")
     verboseprint("[STATUS] Matrix file successfully loaded. Analyzing ...")
     data, results = analyze_matrix(matrix)
-    print(data.shape)
-    print(num_failing_tests(results))
-    print(num_passing_tests(results))
-    print(num_tests(results))
-    print(num_elements(data))
-    print(num_visited_elements(data))
-    print(num_not_visited_elements(data))
-    print(num_visitations(data))
-    print(sparsity(data))
-    print(percentage_passing_tests(results))
-    print(percentage_failing_tests(results))
-    print(coverage_passing_tests(data, results))
-    print(coverage_failing_tests(data, results))
-    print(avg_num_visited_elements(data))
-    print(avg_num_pass_visited_elements(data, results))
-    print(avg_num_fail_visited_elements(data, results))
+    header = ["[TM-" + "{:02d}".format(i) + "] " for i in range(18)]
+
+    m00 = str(num_passing_tests(results))
+    m01 = str(num_failing_tests(results))
+    m02 = str(num_tests(results))
+    m03 = str(percentage_passing_tests(results))
+    m04 = str(percentage_failing_tests(results))
+    m05 = str(num_elements(data))
+    m06 = str(num_visited_elements(data))
+    m07 = str(num_not_visited_elements(data))
+    m08 = str(total_visits(data))
+    m09 = str(sparsity(data))
+    m10 = str(coverage(data))
+    m11 = str(coverage_passing_tests(data, results))
+    m12 = str(coverage_failing_tests(data, results))
+    m13 = str(avg_num_visited_elements(data))
+    m14 = str(avg_num_pass_visited_elements(data, results))
+    m15 = str(avg_num_fail_visited_elements(data, results))
+    m16 = str(same_visited_methods(data, results))
+    m17 = str(percentage_same_visited_methods(data, results))
+
+    output =  header[0] + "Number of passing tests: " + m00 + "\n"
+    output += header[1] + "Number of failing tests: " + m01 + "\n"
+    output += header[2] + "Number of tests: " + m02 + "\n"
+    output += header[3] + "Percentage of passing tests: " + m03 + "\n"
+    output += header[4] + "Percentage of failing tests: " + m04 + "\n"
+    output += header[5] + "Number of elements: " + m05 + "\n"
+    output += header[6] + "Number of visited elements: " + m06 + "\n"
+    output += header[7] + "Number of not visited elements: " + m07 + "\n"
+    output += header[8] + "Number of visits in total: " + m08 + "\n"
+    output += header[9] + "Sparsity: " + m09 + "\n"
+    output += header[10] + "Coverage: " + m10 + "\n"
+    output += header[11] + "Coverage of passing tests: " + m11 + "\n"
+    output += header[12] + "Coverage of failing tests: " + m12 + "\n"
+    output += header[13] + "Average number of visited elements: " + m13 + "\n"
+    output += header[14] + "Average number of visited elements by passing tests: " + m14 + "\n"
+    output += header[15] + "Average number of visited elements by failing tests: " + m15 + "\n"
+    output += header[16] + "Number of methods visited by passing and failing tests: " + m16 + "\n"
+    output += header[17] + "Percentage of methods visited by passing and failing tests: " + m17 + "\n"
 
     verboseprint("[STATUS] Output generated!")
-    # if dest_path:
-    #     verboseprint("[STATUS] Writing output to file " + dest_path)
-    #     write_output(dest_path, output)
-    #     verboseprint("[STATUS] Output written!")
-    # else:
-        ### verboseprint("[INFO] Printing results ...")
-        ### print(output)
+    if dest_path:
+        verboseprint("[STATUS] Writing output to file " + dest_path)
+        record = [m00, m01, m02, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, m15, m16, m17]
+        write_output(dest_path, header, record)
+        verboseprint("[STATUS] Output written!")
+    else:
+        verboseprint("[INFO] Printing results ...\n")
+        print(output)
     verboseprint("[STATUS] Success! Exiting ...")
 
 
@@ -92,38 +116,31 @@ def verify_input(matrix, dest_path):
         print("Failed. Aborting ...")
         sys.exit()
     if dest_path and not os.path.exists(dest_path):
-        verboseprint("[ERROR] Destination path invalid.")
-        print("Failed. Aborting ...")
-        sys.exit()
-
-def write_output(fname, output):
-    with open(fname, 'w') as text_file:
         try:
-            for line in output:
-                text_file.write(line + '\n')
-        except Exception:
-            verboseprint("[ERROR] Exception during writing output to {:s}".format(fname))
+            with open(dest_path, 'x') as tempfile: 
+                pass
+        except OSError:
+            verboseprint("[ERROR] Destination path invalid.")
             print("Failed. Aborting ...")
             sys.exit()
-
-def call_design_metric(technique):
-    if technique == "dstar2":
-        scores = dstar2()
-    elif technique == "dstar3":
-        scores = dstar3()
-    elif technique == "jaccard":
-        scores = jaccard()
-    elif technique == "ochiai":
-        scores = ochiai()
-    elif technique == "tarantula":
-        scores = tarantula()
-    elif technique == "zoltar":
-        scores = zoltar()
-    else:
-        print("[ERROR] Technique not implemented yet.")
+    if os.path.isdir(dest_path):
+        verboseprint("[ERROR] Destination is a directory.")
         print("Failed. Aborting ...")
         sys.exit()
-    return scores
+
+def write_output(fname, header, record):
+    with open(fname, 'w+') as text_file:
+        try:
+            text_file.write(', '.join(header)
+                    .replace('[', '')
+                    .replace(']', '')
+                    .replace(' ,', ',') + "\n")
+            text_file.write(', '.join(record) + "\n")
+        except Exception as e:
+            verboseprint("[ERROR] Exception during writing output to {:s}".format(fname))
+            print("Failed. Aborting ...")
+            print(e)
+            sys.exit()
 
 def num_failing_tests(results):
     return (results == '-').sum()
@@ -149,7 +166,7 @@ def num_visited_elements(data):
 def num_not_visited_elements(data):
     return (np.sum(data, axis=0) == 0).sum()
 
-def num_visitations(data):
+def total_visits(data):
     return np.sum(data)
 
 def sparsity(data):
@@ -180,9 +197,16 @@ def avg_num_fail_visited_elements(data, results):
     visits = np.sum(failing_tests, axis=1)
     return np.sum(visits)/ len(failing_tests)
 
-def num_same_visited_methods(data, results):
+def same_visited_methods(data, results):
     passing_data = get_passing_data(data, results)
     failing_data = get_failing_data(data, results)
+    visited_passing = (np.sum(passing_data, axis=0) != 0)
+    visited_failing = (np.sum(failing_data, axis=0) != 0)
+    both_visited = np.logical_and(visited_passing, visited_failing)
+    return both_visited.sum()
+
+def percentage_same_visited_methods(data, results):
+    return same_visited_methods(data, results) / len(data)
 
 def get_passing_data(data, results):
     mask = np.transpose(results == '+')[0]
@@ -193,13 +217,16 @@ def get_failing_data(data, results):
     return data[mask]
 
 def usage():
-    print("\nPython command tool to evaluate Gzoltar outputs.\n")
+    print("\nPython command tool to analyze hit-spectra matrices.\n")
     print("faultloc.py -m <matrix file>")
     print("Parameters:")
     print("-m : specify matrix file (--matrix=)")
     print("-w : specify output file")
     print("-v : verbose output (--verbose)")
     print("-h : print this help")
+
+def str(number):
+    return "{0:.4f}".format(number).rstrip('0').rstrip('.')
 
 
 if __name__ == "__main__":

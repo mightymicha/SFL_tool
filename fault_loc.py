@@ -171,10 +171,17 @@ def verify_input(matrix, spectra, technique, number, max_rank, dest_path):
             print("Failed. Aborting ...")
             sys.exit()
     if dest_path and not os.path.exists(dest_path):
-        verboseprint("[ERROR] Destination path invalid.")
+        try:
+            with open(dest_path, 'x') as tempfile: 
+                pass
+        except OSError:
+            verboseprint("[ERROR] Destination path invalid.")
+            print("Failed. Aborting ...")
+            sys.exit()
+    if os.path.isdir(dest_path):
+        verboseprint("[ERROR] Destination is a directory.")
         print("Failed. Aborting ...")
         sys.exit()
-
 
 def load_spectra(fname):
     data = []
@@ -189,7 +196,7 @@ def load_spectra(fname):
     return data
 
 def write_output(fname, output):
-    with open(fname, 'w') as text_file:
+    with open(fname, 'w+') as text_file:
         try:
             for line in output:
                 text_file.write(line + '\n')
