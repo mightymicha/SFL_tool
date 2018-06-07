@@ -1,0 +1,64 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+analyze_matrix	fault_loc.py	/^def analyze_matrix(matrix):$/;"	f
+analyze_matrix	metric_loc.py	/^def analyze_matrix(matrix):$/;"	f
+avg_num_fail_visited_elements	metric_loc.py	/^def avg_num_fail_visited_elements(data, results):$/;"	f
+avg_num_pass_visited_elements	metric_loc.py	/^def avg_num_pass_visited_elements(data, results):$/;"	f
+avg_num_visited_elements	metric_loc.py	/^def avg_num_visited_elements(data):$/;"	f
+call_design_metric	fault_loc.py	/^def call_design_metric(technique):$/;"	f
+coverage	metric_loc.py	/^def coverage(data):$/;"	f
+coverage_failing_tests	metric_loc.py	/^def coverage_failing_tests(data, results):$/;"	f
+coverage_passing_tests	metric_loc.py	/^def coverage_passing_tests(data, results):$/;"	f
+csv	fault_loc.py	/^import csv$/;"	i
+csv	metric_loc.py	/^import csv$/;"	i
+dstar2	fault_loc.py	/^def dstar2():$/;"	f
+dstar3	fault_loc.py	/^def dstar3():$/;"	f
+failed_statements	fault_loc.py	/^failed_statements = [] # executions by failing test cases$/;"	v
+get_failing_data	metric_loc.py	/^def get_failing_data(data, results):$/;"	f
+get_passing_data	metric_loc.py	/^def get_passing_data(data, results):$/;"	f
+getopt	fault_loc.py	/^import getopt$/;"	i
+getopt	metric_loc.py	/^import getopt$/;"	i
+jaccard	fault_loc.py	/^def jaccard():$/;"	f
+load_spectra	fault_loc.py	/^def load_spectra(fname):$/;"	f
+main	fault_loc.py	/^def main(argv):$/;"	f
+main	metric_loc.py	/^def main(argv):$/;"	f
+np	fault_loc.py	/^import numpy as np$/;"	i
+np	metric_loc.py	/^import numpy as np$/;"	i
+num_elements	metric_loc.py	/^def num_elements(data):$/;"	f
+num_failing_tests	metric_loc.py	/^def num_failing_tests(results):$/;"	f
+num_not_visited_elements	metric_loc.py	/^def num_not_visited_elements(data):$/;"	f
+num_passing_tests	metric_loc.py	/^def num_passing_tests(results):$/;"	f
+num_tests	metric_loc.py	/^def num_tests(results):$/;"	f
+num_visited_elements	metric_loc.py	/^def num_visited_elements(data):$/;"	f
+ochiai	fault_loc.py	/^def ochiai():$/;"	f
+os	fault_loc.py	/^import os$/;"	i
+os	metric_loc.py	/^import os$/;"	i
+passed_statements	fault_loc.py	/^passed_statements = [] # executions by passing test cases$/;"	v
+percentage_failing_tests	metric_loc.py	/^def percentage_failing_tests(results):$/;"	f
+percentage_passing_tests	metric_loc.py	/^def percentage_passing_tests(results):$/;"	f
+percentage_same_visited_elements	metric_loc.py	/^def percentage_same_visited_elements(data, results):$/;"	f
+rank	fault_loc.py	/^def rank(v):$/;"	f
+same_visited_elements	metric_loc.py	/^def same_visited_elements(data, results):$/;"	f
+sparsity	metric_loc.py	/^def sparsity(data):$/;"	f
+str	metric_loc.py	/^def str(number):$/;"	f
+sys	fault_loc.py	/^import sys$/;"	i
+sys	metric_loc.py	/^import sys$/;"	i
+tarantula	fault_loc.py	/^def tarantula():$/;"	f
+techniques	fault_loc.py	/^techniques = ["dstar2", "dstar3", "jaccard", "ochiai", "tarantula", "zoltar"]$/;"	v
+total	fault_loc.py	/^total = 0$/;"	v
+total_failed	fault_loc.py	/^total_failed = 0 # total failed test cases$/;"	v
+total_passed	fault_loc.py	/^total_passed = 0 # total passed test cases$/;"	v
+total_visits	metric_loc.py	/^def total_visits(data):$/;"	f
+usage	fault_loc.py	/^def usage():$/;"	f
+usage	metric_loc.py	/^def usage():$/;"	f
+verboseprint	fault_loc.py	/^verboseprint = None$/;"	v
+verboseprint	metric_loc.py	/^verboseprint = None$/;"	v
+verify_input	fault_loc.py	/^def verify_input(matrix, spectra, technique, number, max_rank, dest_path):$/;"	f
+verify_input	metric_loc.py	/^def verify_input(matrix, dest_path):$/;"	f
+write_output	fault_loc.py	/^def write_output(fname, output):$/;"	f
+write_output	metric_loc.py	/^def write_output(fname, header, record):$/;"	f
+zoltar	fault_loc.py	/^def zoltar():$/;"	f
