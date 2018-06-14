@@ -59,6 +59,6 @@ verboseprint	fault_loc.py	/^verboseprint = None$/;"	v
 verboseprint	metric_loc.py	/^verboseprint = None$/;"	v
 verify_input	fault_loc.py	/^def verify_input(matrix, spectra, technique, number, max_rank, dest_path):$/;"	f
 verify_input	metric_loc.py	/^def verify_input(matrix, dest_path):$/;"	f
-write_output	fault_loc.py	/^def write_output(fname, output):$/;"	f
+write_output	fault_loc.py	/^def write_output(fname, header, output):$/;"	f
 write_output	metric_loc.py	/^def write_output(fname, header, record):$/;"	f
 zoltar	fault_loc.py	/^def zoltar():$/;"	f

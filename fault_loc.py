@@ -82,9 +82,10 @@ def main(argv):
     verboseprint("[STATUS] Generating output ...")
 
     for i, line in enumerate(spectra_lines):
-        spectra_lines[i] = line + "," + str(ranks[i]) + ",{:.4f}".format(scores[i])
+        spectra_lines[i] = line.split("#")[0] + "," + line.split("#")[1] + "," + str(ranks[i]) + ",{:.4f}".format(scores[i])
     np_spectra_lines = np.array(spectra_lines)
     sorted_lines = np_spectra_lines[sorted_rank_indices]
+    header = "File,Line,Rank,Suspiciousness" 
 
     output = sorted_lines
     if number:
@@ -98,7 +99,7 @@ def main(argv):
     verboseprint("[STATUS] Output generated!")
     if dest_path:
         verboseprint("[STATUS] Writing output to file " + dest_path)
-        write_output(dest_path, output)
+        write_output(dest_path, header, output)
         verboseprint("[STATUS] Output written!")
     else:
         verboseprint("[INFO] Printing results ...")
@@ -195,9 +196,10 @@ def load_spectra(fname):
             sys.exit()
     return data
 
-def write_output(fname, output):
+def write_output(fname, header, output):
     with open(fname, 'w+') as text_file:
         try:
+            text_file.write(header + '\n')
             for line in output:
                 text_file.write(line + '\n')
         except Exception:
