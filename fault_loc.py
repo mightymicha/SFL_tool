@@ -1,7 +1,6 @@
 import sys
 import os
 import getopt
-import csv
 import numpy as np
 
 techniques = ["dstar2", "dstar3", "jaccard", "ochiai", "tarantula", "zoltar"]
@@ -109,10 +108,11 @@ def main(argv):
 
 def analyze_matrix(matrix):
     global passed_statements, failed_statements, total_failed, total_passed, scores, total
-    with open(matrix) as csvfile:
-        reader = csv.reader(csvfile, delimiter=' ')
-        try:
-            for row in reader:
+    data = []
+    try:
+        with open(matrix, 'r') as csvfile:
+            for line in csvfile:
+                row = line.split()
                 if passed_statements == []:
                     passed_statements = np.zeros(len(row)-1)
                     failed_statements = np.zeros(len(row)-1)
@@ -125,10 +125,10 @@ def analyze_matrix(matrix):
                     visited_statements = np.array(row[:-1]).astype(int)
                     failed_statements = np.add(failed_statements, visited_statements)
             total = total_failed + total_passed
-        except csv.Error as ex:
-            verboseprint("[ERROR] Exception during matrix file parsing.")
-            print("Failed. Aborting ...")
-            sys.exit()
+    except Exception as ex:
+        verboseprint("[ERROR] Exception during matrix file parsing.")
+        print("Failed. Aborting ...")
+        sys.exit()
 
 def verify_input(matrix, spectra, technique, number, max_rank, dest_path):
     if(matrix == '' or spectra == '' or technique == ''):
