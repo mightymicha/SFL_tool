@@ -282,7 +282,7 @@ def zoltar():
 
 def usage():
     print("\nPython command tool to evaluate Gzoltar outputs.\n")
-    print("faultloc.py -m <matrix file> -s <spectra file> -t <technique>")
+    print("fault_loc.py -m <matrix file> -s <spectra file> -t <technique>")
     print("Techniques: " + ", ".join(x for x in techniques) + "\n")
     print("Parameters:")
     print("-m : specify matrix file (--matrix=)")

@@ -238,8 +238,8 @@ def get_failing_data(data, results):
     return data[mask]
 
 def usage():
-    print("\nPython command tool to analyze hit-spectra matrices.\n")
-    print("faultloc.py -m <matrix file>")
+    print("\nPython commandline tool to analyze hit-spectra matrices.\n")
+    print("metric_loc.py -m <matrix file>")
     print("Parameters:")
     print("-m : specify matrix file (--matrix=)")
     print("-w : specify output file")
